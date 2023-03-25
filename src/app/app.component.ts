@@ -15,21 +15,21 @@ export class AppComponent implements OnInit {
   searchKey = new FormControl('');
   cars: Car[] = [];
   totalRecords: number = 0;
-  currentPageNumber = 1;
-  pageSize = 1;
+  pageIndex = 0;
+  pageSize = 5;
   constructor(private appService: AppService) {}
 
   ngOnInit(): void {
     this.getApi('', '', '',
-    this.currentPageNumber,
+    this.pageIndex,
     this.pageSize);
     this.sortOrderControl.valueChanges.subscribe((value) => {
       if (value) {
         let sortResult = this.doSorting(value);
-        this.currentPageNumber = 1;
-        this.pageSize = 1;
+        this.pageIndex = 0;
+        this.pageSize = 5;
         this.getApi(sortResult.sortColumn, sortResult.sortType, '',
-        this.currentPageNumber,
+        this.pageIndex,
         this.pageSize);
       }
     });
@@ -65,13 +65,13 @@ export class AppComponent implements OnInit {
 
   searchByName() {
     let sortResult = this.doSorting(this.sortOrderControl.value ?? '');
-    this.currentPageNumber = 1;
-    this.pageSize = 1;
+    this.pageIndex = 0;
+    this.pageSize = 5;
     this.getApi(
       sortResult.sortColumn,
       sortResult.sortType,
       this.searchKey.value ?? '',
-      this.currentPageNumber,
+      this.pageIndex,
       this.pageSize
     );
   }
@@ -79,7 +79,7 @@ export class AppComponent implements OnInit {
   getApi(sortColumn: string, sortType: string, searchKey: string,
     currentPage:number, pageSize:number) {
     this.appService
-      .get(sortColumn, sortType, searchKey,currentPage, pageSize)
+      .get(sortColumn, sortType, searchKey,(currentPage + 1), pageSize)
       .subscribe((response) => {
         this.cars = response.body as Car[];
         this.totalRecords = response.headers.get('X-Total-Count')
@@ -91,14 +91,14 @@ export class AppComponent implements OnInit {
 
   handlePageEvent(e: PageEvent) {
     
-    this.currentPageNumber = (e.pageIndex + 1);
+    this.pageIndex = e.pageIndex ;
     this.pageSize = e.pageSize;
     let sortResult = this.doSorting(this.sortOrderControl.value ?? '');
     this.getApi(
       sortResult.sortColumn,
       sortResult.sortType,
       this.searchKey.value ?? '',
-      this.currentPageNumber,
+      this.pageIndex,
       this.pageSize
     );
   }
